@@ -1,0 +1,2107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BINA SOFTWARE - Store Management System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://kit.fontawesome.com/a076d05399.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#5D5CDE',
+                        'primary-dark': '#4338CA'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .fade-in {
+            animation: fadeIn 0.3s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .nav-item:hover {
+            background-color: rgba(93, 92, 222, 0.1);
+        }
+        .dark .nav-item:hover {
+            background-color: rgba(93, 92, 222, 0.2);
+        }
+        .logo-animation {
+            animation: logoGlow 2s ease-in-out infinite alternate;
+        }
+        @keyframes logoGlow {
+            from { filter: drop-shadow(0 0 5px rgba(255, 105, 180, 0.5)); }
+            to { filter: drop-shadow(0 0 15px rgba(255, 105, 180, 0.8)); }
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .sidebar {
+            transition: all 0.3s ease-in-out;
+        }
+        .sidebar.collapsed {
+            width: 60px;
+        }
+        .sidebar.collapsed .nav-text {
+            display: none;
+        }
+        .sidebar.collapsed .nav-item {
+            justify-content: center;
+        }
+        .sidebar-toggle {
+            position: absolute;
+            top: 10px;
+            right: -15px;
+            background: #5D5CDE;
+            border: none;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+        .main-content {
+            transition: margin-left 0.3s ease-in-out;
+        }
+        .main-content.expanded {
+            margin-left: 60px;
+        }
+        .report-section {
+            page-break-inside: avoid;
+        }
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            .report-content {
+                box-shadow: none !important;
+                border: none !important;
+            }
+        }
+        .report-card {
+            transition: transform 0.2s ease-in-out;
+        }
+        .report-card:hover {
+            transform: translateY(-2px);
+        }
+        .login-container {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .admin-only {
+            display: none;
+        }
+        .user-only {
+            display: none;
+        }
+        .pending-stock {
+            background-color: rgba(255, 193, 7, 0.1);
+            border-left: 4px solid #ffc107;
+        }
+    </style>
+</head>
+<body class="bg-white dark:bg-gray-900 text-gray-900 dark:text-white">
+    <!-- Login Screen -->
+    <div id="login-screen" class="login-container">
+        <div class="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-2xl w-full max-w-md mx-4">
+            <div class="text-center mb-8">
+                <svg class="w-16 h-16 logo-animation mx-auto mb-4" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#ff69b4;stop-opacity:1" />
+                            <stop offset="50%" style="stop-color:#ff1493;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#ff69b4;stop-opacity:1" />
+                        </linearGradient>
+                    </defs>
+                    <circle cx="50" cy="50" r="35" fill="none" stroke="url(#logoGradient)" stroke-width="3"/>
+                    <polygon points="35,35 65,35 50,20" fill="url(#logoGradient)"/>
+                    <polygon points="35,65 65,65 50,80" fill="url(#logoGradient)"/>
+                    <circle cx="35" cy="50" r="6" fill="url(#logoGradient)"/>
+                    <circle cx="65" cy="50" r="6" fill="url(#logoGradient)"/>
+                    <rect x="45" y="45" width="10" height="10" fill="url(#logoGradient)" rx="2"/>
+                    <line x1="41" y1="50" x2="45" y2="50" stroke="url(#logoGradient)" stroke-width="2"/>
+                    <line x1="55" y1="50" x2="59" y2="50" stroke="url(#logoGradient)" stroke-width="2"/>
+                </svg>
+                <h1 class="text-3xl font-bold text-primary mb-2">BINA SOFTWARE</h1>
+                <p class="text-gray-600 dark:text-gray-400">Store Management System</p>
+            </div>
+            
+            <form id="login-form" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium mb-2">Username</label>
+                    <input type="text" name="username" required class="w-full text-base p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 focus:ring-2 focus:ring-primary focus:border-transparent">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Password</label>
+                    <input type="password" name="password" required class="w-full text-base p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 focus:ring-2 focus:ring-primary focus:border-transparent">
+                </div>
+                <button type="submit" class="w-full bg-primary hover:bg-primary-dark text-white p-3 rounded-lg transition-colors duration-200">
+                    <i class="fas fa-sign-in-alt mr-2"></i>Login
+                </button>
+                <div class="text-sm text-gray-600 dark:text-gray-400 mt-4">
+                    <p><strong>Admin:</strong> admin / admin123</p>
+                    <p><strong>User:</strong> user1 / user123</p>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Main Application -->
+    <div id="main-app" style="display: none;">
+        <!-- Header -->
+        <header class="bg-primary text-white p-4 shadow-lg no-print">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <svg class="w-10 h-10 logo-animation" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="logoGradient2" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#ff69b4;stop-opacity:1" />
+                                <stop offset="50%" style="stop-color:#ff1493;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#ff69b4;stop-opacity:1" />
+                            </linearGradient>
+                        </defs>
+                        <circle cx="50" cy="50" r="35" fill="none" stroke="url(#logoGradient2)" stroke-width="3"/>
+                        <polygon points="35,35 65,35 50,20" fill="url(#logoGradient2)"/>
+                        <polygon points="35,65 65,65 50,80" fill="url(#logoGradient2)"/>
+                        <circle cx="35" cy="50" r="6" fill="url(#logoGradient2)"/>
+                        <circle cx="65" cy="50" r="6" fill="url(#logoGradient2)"/>
+                        <rect x="45" y="45" width="10" height="10" fill="url(#logoGradient2)" rx="2"/>
+                        <line x1="41" y1="50" x2="45" y2="50" stroke="url(#logoGradient2)" stroke-width="2"/>
+                        <line x1="55" y1="50" x2="59" y2="50" stroke="url(#logoGradient2)" stroke-width="2"/>
+                    </svg>
+                    <div>
+                        <h1 class="text-2xl font-bold">BINA SOFTWARE</h1>
+                        <p class="text-xs opacity-90">Advanced Store Management</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span class="text-sm">Welcome, <span id="current-user-name" class="font-semibold"></span> (<span id="current-user-role" class="font-semibold"></span>)</span>
+                    <button onclick="openStockTypeModal()" class="admin-only bg-white text-primary px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors duration-200 text-sm font-medium">
+                        <i class="fas fa-tags mr-2"></i>Manage Stock Types
+                    </button>
+                    <button onclick="openDepartmentModal()" class="admin-only bg-white text-primary px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors duration-200 text-sm font-medium">
+                        <i class="fas fa-building mr-2"></i>Manage Departments
+                    </button>
+                    <button onclick="toggleEditMode()" id="edit-toggle" class="admin-only bg-yellow-500 text-white px-4 py-2 rounded-lg hover:bg-yellow-600 transition-colors duration-200 text-sm font-medium">
+                        <i class="fas fa-edit mr-2"></i>Edit Mode: OFF
+                    </button>
+                    <button onclick="logout()" class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors duration-200 text-sm font-medium">
+                        <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <div class="flex min-h-screen">
+            <!-- Left Navigation -->
+            <nav id="sidebar" class="sidebar w-64 bg-gray-50 dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 p-4 relative no-print">
+                <button class="sidebar-toggle" onclick="toggleSidebar()">
+                    <i class="fas fa-chevron-left" id="sidebar-icon"></i>
+                </button>
+                <ul class="space-y-2">
+                    <li>
+                        <button onclick="showSection('dashboard')" class="nav-item w-full text-left p-3 rounded-lg transition-colors duration-200 flex items-center space-x-3 bg-primary text-white">
+                            <i class="fas fa-tachometer-alt"></i>
+                            <span class="nav-text">Dashboard</span>
+                        </button>
+                    </li>
+                    <li class="admin-only">
+                        <button onclick="showSection('admin')" class="nav-item w-full text-left p-3 rounded-lg transition-colors duration-200 flex items-center space-x-3">
+                            <i class="fas fa-user-shield"></i>
+                            <span class="nav-text">Admin Panel</span>
+                        </button>
+                    </li>
+                    <li>
+                        <button onclick="showSection('stock-in')" class="nav-item w-full text-left p-3 rounded-lg transition-colors duration-200 flex items-center space-x-3">
+                            <i class="fas fa-plus-circle"></i>
+                            <span class="nav-text">Stock In</span>
+                        </button>
+                    </li>
+                    <li>
+                        <button onclick="showSection('stock-out')" class="nav-item w-full text-left p-3 rounded-lg transition-colors duration-200 flex items-center space-x-3">
+                            <i class="fas fa-minus-circle"></i>
+                            <span class="nav-text">Stock Out</span>
+                        </button>
+                    </li>
+                    <li>
+                        <button onclick="showSection('balance')" class="nav-item w-full text-left p-3 rounded-lg transition-colors duration-200 flex items-center space-x-3">
+                            <i class="fas fa-balance-scale"></i>
+                            <span class="nav-text">Balance</span>
+                        </button>
+                    </li>
+                    <li>
+                        <button onclick="showSection('quantity-status')" class="nav-item w-full text-left p-3 rounded-lg transition-colors duration-200 flex items-center space-x-3">
+                            <i class="fas fa-boxes"></i>
+                            <span class="nav-text">Quantity Status</span>
+                        </button>
+                    </li>
+                    <li>
+                        <button onclick="showSection('expired-date')" class="nav-item w-full text-left p-3 rounded-lg transition-colors duration-200 flex items-center space-x-3">
+                            <i class="fas fa-calendar-times"></i>
+                            <span class="nav-text">Expired Date Status</span>
+                        </button>
+                    </li>
+                    <li>
+                        <button onclick="showSection('reports')" class="nav-item w-full text-left p-3 rounded-lg transition-colors duration-200 flex items-center space-x-3">
+                            <i class="fas fa-chart-bar"></i>
+                            <span class="nav-text">Reports</span>
+                        </button>
+                    </li>
+                </ul>
+            </nav>
+
+            <!-- Main Content -->
+            <main id="main-content" class="main-content flex-1 p-6">
+                <!-- Admin Panel Section -->
+                <div id="admin" class="section hidden fade-in">
+                    <h2 class="text-3xl font-bold mb-6">Admin Panel</h2>
+                    
+                    <!-- User Management -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                        <div class="bg-gray-50 dark:bg-gray-800 p-6 rounded-lg">
+                            <h3 class="text-xl font-semibold mb-4">Create New User</h3>
+                            <form id="create-user-form" class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">Username</label>
+                                    <input type="text" name="username" required class="w-full text-base p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 focus:ring-2 focus:ring-primary focus:border-transparent">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">Password</label>
+                                    <input type="password" name="password" required class="w-full text-base p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 focus:ring-2 focus:ring-primary focus:border-transparent">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">Full Name</label>
+                                    <input type="text" name="fullName" required class="w-full text-base p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 focus:ring-2 focus:ring-primary focus:border-transparent">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">Role</label>
+                                    <select name="role" required class="w-full text-base p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 focus:ring-2 focus:ring-primary focus:border-transparent">
+                                        <option value="user">User</option>
+                                        <option value="admin">Admin</option>
+                                    </select>
+                                </div>
+                                <button type="submit" class="w-full bg-primary hover:bg-primary-dark text-white p-3 rounded-lg transition-colors duration-200">Create User</button>
+                            </form>
+                        </div>
+                        
+                        <div class="bg-gray-50 dark:bg-gray-800 p-6 rounded-lg">
+                            <h3 class="text-xl font-semibold mb-4">Edit Access Control</h3>
+                            <form id="edit-access-form" class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">Select User</label>
+                                    <select name="userId" required class="w-full text-base p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 focus:ring-2 focus:ring-primary focus:border-transparent">
+                                        <option value="">Select User</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">Record Sequence Number</label>
+                                    <input type="text" name="sequenceNumber" required class="w-full text-base p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="e.g., IN0001, OUT0001">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">Access Type</label>
+                                    <select name="accessType" required class="w-full text-base p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 focus:ring-2 focus:ring-primary focus:border-transparent">
+                                        <option value="edit_number">Edit Number</option>
+                                        <option value="edit_date">Edit Date</option>
+                                        <option value="edit_both">Edit Number & Date</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">Valid Until</label>
+                                    <input type="datetime-local" name="validUntil" required class="w-full text-base p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 focus:ring-2 focus:ring-primary focus:border-transparent">
+                                </div>
+                                <button type="submit" class="w-full bg-green-500 hover:bg-green-600 text-white p-3 rounded-lg transition-colors duration-200">Grant Edit Access</button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Users List -->
+                    <div class="bg-gray-50 dark:bg-gray-800 p-6 rounded-lg mb-6">
+                        <h3 class="text-xl font-semibold mb-4">Users Management</h3>
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead class="bg-gray-100 dark:bg-gray-700">
+                                    <tr>
+                                        <th class="p-3 text-left">Username</th>
+                                        <th class="p-3 text-left">Full Name</th>
+                                        <th class="p-3 text-left">Role</th>
+                                        <th class="p-3 text-left">Created</th>
+                                        <th class="p-3 text-left">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="users-table" class="divide-y divide-gray-200 dark:divide-gray-600">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Edit Access Grants -->
+                    <div class="bg-gray-50 dark:bg-gray-800 p-6 rounded-lg">
+                        <h3 class="text-xl font-semibold mb-4">Active Edit Access Grants</h3>
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead class="bg-gray-100 dark:bg-gray-700">
+                                    <tr>
+                                        <th class="p-3 text-left">User</th>
+                                        <th class="p-3 text-left">Sequence #</th>
+                                        <th class="p-3 text-left">Access Type</th>
+                                        <th class="p-3 text-left">Valid Until</th>
+                                        <th class="p-3 text-left">Status</th>
+                                        <th class="p-3 text-left">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="edit-access-table" class="divide-y divide-gray-200 dark:divide-gray-600">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dashboard Section -->
+                <div id="dashboard" class="section fade-in">
+                    <h2 class="text-3xl font-bold mb-6">Dashboard</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                        <div class="bg-green-500 text-white p-6 rounded-lg shadow-lg">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm opacity-90">Total Stock In Cost</p>
+                                    <p class="text-2xl font-bold" id="total-stock-in">ETB 0.00</p>
+                                </div>
+                                <i class="fas fa-arrow-up text-3xl opacity-80"></i>
+                            </div>
+                        </div>
+                        <div class="bg-red-500 text-white p-6 rounded-lg shadow-lg">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm opacity-90">Total Stock Out Cost</p>
+                                    <p class="text-2xl font-bold" id="total-stock-out">ETB 0.00</p>
+                                </div>
+                                <i class="fas fa-arrow-down text-3xl opacity-80"></i>
+                            </div>
+                        </div>
+                        <div class="bg-blue-500 text-white p-6 rounded-lg shadow-lg">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm opacity-90">Current Balance</p>
+                                    <p class="text-2xl font-bold" id="current-balance">ETB 0.00</p>
+                                </div>
+                                <i class="fas fa-balance-scale text-3xl opacity-80"></i>
+                            </div>
+                        </div>
+                        <div class="bg-purple-500 text-white p-6 rounded-lg shadow-lg">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm opacity-90">Total Items</p>
+                                    <p class="text-2xl font-bold" id="total-items">0</p>
+                                </div>
+                                <i class="fas fa-cube text-3xl opacity-80"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Activity -->
+                    <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-6">
+                        <h3 class="text-xl font-semibold mb-4">Recent Activity</h3>
+                        <div id="recent-activity" class="space-y-3">
+                            <p class="text-gray-500 dark:text-gray-400">No recent activity</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stock In Section -->
+                <div id="stock-in" class="section hidden fade-in">
+                    <h2 class="text-3xl font-bold mb-6">Stock In</h2>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="bg-gray-50 dark:bg-gray-800 p-6 rounded-lg">
+                            <h3 class="text-xl font-semibold mb-4">Add Stock In
+                                <span id="current-stockin-sequence-display" class="text-sm text-primary ml-2" style="display: none;">
+                                    (Sequence <span id="stockin-sequence-number-display"></span>)
+                                </span>
+                            </h3>
+                            <form id="stock-in-form" class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">Item Name</label>
+                                    <input type="text" name="itemName" required class="w-full text-base p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 focus:ring-2 focus:ring-primary focus:border-transparent">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">Stock Type</label>
+                                    <select name="stockType" required class="w-full text-base p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 focus:ring-2 focus:ring-primary focus:border-transparent">
+                                        <option value="">Select Stock Type</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">Quantity</label>
+                                    <input type="number" name="quantity" required min="1" class="w-full text-base p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 focus:ring-2 focus:ring-primary focus:border-transparent">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">Unit Cost (ETB)</label>
+                                    <input type="number" name="unitCost" required min="0" step="0.01" class="w-full text-base p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 focus:ring-2 focus:ring-primary focus:border-transparent">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">Minimum Stock Level</label>
+                                    <input type="number" name="minStock" required min="0" class="w-full text-base p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 focus:ring-2 focus:ring-primary focus:border-transparent">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">Expiry Date</label>
+                                    <input type="date" name="expiryDate" required class="w-full text-base p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 focus:ring-2 focus:ring-primary focus:border-transparent">
+                                </div>
+                                <button type="submit" class="w-full bg-primary hover:bg-primary-dark text-white p-3 rounded-lg transition-colors duration-200">Add Stock In</button>
+                            </form>
+                        </div>
+                        <div class="bg-gray-50 dark:bg-gray-800 p-6 rounded-lg">
+                            <h3 class="text-xl font-semibold mb-4">Stock In History</h3>
+                            
+                            <!-- Current Pending Stock In -->
+                            <div id="pending-stock-in-section" style="display: none;" class="mb-4">
+                                <h4 class="text-lg font-medium mb-2 text-orange-600">Current Sequence (Pending)</h4>
+                                <div class="overflow-x-auto">
+                                    <table class="w-full text-sm">
+                                        <thead class="bg-orange-100 dark:bg-orange-900">
+                                            <tr>
+                                                <th class="p-2 text-left">Item</th>
+                                                <th class="p-2 text-left">Type</th>
+                                                <th class="p-2 text-left">Qty</th>
+                                                <th class="p-2 text-left">Cost</th>
+                                                <th class="p-2 text-left">Total</th>
+                                                <th class="p-2 text-left">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="pending-stock-in-table" class="divide-y divide-gray-200 dark:divide-gray-600">
+                                        </tbody>
+                                    </table>
+                                </div>
+                                
+                                <!-- Done Button placed under pending table -->
+                                <div class="mt-4">
+                                    <button onclick="finalizeStockIn()" class="w-full bg-green-500 hover:bg-green-600 text-white p-3 rounded-lg transition-colors duration-200">
+                                        <i class="fas fa-check mr-2"></i>Done - Finalize Sequence <span id="done-stockin-sequence-number"></span>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- Completed Stock In History -->
+                            <div>
+                                <h4 class="text-lg font-medium mb-2">Completed History</h4>
+                                <div class="overflow-x-auto">
+                                    <table class="w-full text-sm">
+                                        <thead class="bg-gray-100 dark:bg-gray-700">
+                                            <tr>
+                                                <th class="p-2 text-left">Seq#</th>
+                                                <th class="p-2 text-left">Item</th>
+                                                <th class="p-2 text-left">Type</th>
+                                                <th class="p-2 text-left">Qty</th>
+                                                <th class="p-2 text-left">Cost</th>
+                                                <th class="p-2 text-left">Date</th>
+                                                <th class="p-2 text-left edit-column" style="display: none;">Actions</th>
+                                                <th class="p-2 text-left user-edit-column" style="display: none;">Edit</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="stock-in-table" class="divide-y divide-gray-200 dark:divide-gray-600">
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stock Out Section -->
+                <div id="stock-out" class="section hidden fade-in">
+                    <h2 class="text-3xl font-bold mb-6">Stock Out</h2>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="bg-gray-50 dark:bg-gray-800 p-6 rounded-lg">
+                            <h3 class="text-xl font-semibold mb-4">Add Stock Out 
+                                <span id="current-stockout-sequence-display" class="text-sm text-primary ml-2" style="display: none;">
+                                    (Sequence <span id="stockout-sequence-number-display"></span>)
+                                </span>
+                            </h3>
+                            <form id="stock-out-form" class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">Item Name</label>
+                                    <select name="itemName" required class="w-full text-base p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 focus:ring-2 focus:ring-primary focus:border-transparent">
+                                        <option value="">Select Item</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">Department</label>
+                                    <select name="department" required class="w-full text-base p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 focus:ring-2 focus:ring-primary focus:border-transparent">
+                                        <option value="">Select Department</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">Quantity</label>
+                                    <input type="number" name="quantity" required min="1" class="w-full text-base p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 focus:ring-2 focus:ring-primary focus:border-transparent">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">Unit Selling Price (ETB)</label>
+                                    <input type="number" name="unitPrice" required min="0" step="0.01" class="w-full text-base p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 focus:ring-2 focus:ring-primary focus:border-transparent">
+                                </div>
+                                <button type="submit" class="w-full bg-red-500 hover:bg-red-600 text-white p-3 rounded-lg transition-colors duration-200">Add Stock Out</button>
+                            </form>
+                        </div>
+                        <div class="bg-gray-50 dark:bg-gray-800 p-6 rounded-lg">
+                            <h3 class="text-xl font-semibold mb-4">Stock Out History</h3>
+                            
+                            <!-- Current Pending Stock Out -->
+                            <div id="pending-stock-out-section" style="display: none;" class="mb-4">
+                                <h4 class="text-lg font-medium mb-2 text-orange-600">Current Sequence (Pending)</h4>
+                                <div class="overflow-x-auto">
+                                    <table class="w-full text-sm">
+                                        <thead class="bg-orange-100 dark:bg-orange-900">
+                                            <tr>
+                                                <th class="p-2 text-left">Item</th>
+                                                <th class="p-2 text-left">Dept</th>
+                                                <th class="p-2 text-left">Qty</th>
+                                                <th class="p-2 text-left">Price</th>
+                                                <th class="p-2 text-left">Total</th>
+                                                <th class="p-2 text-left">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="pending-stock-out-table" class="divide-y divide-gray-200 dark:divide-gray-600">
+                                        </tbody>
+                                    </table>
+                                </div>
+                                
+                                <!-- Done Button placed under pending table -->
+                                <div class="mt-4">
+                                    <button onclick="finalizeStockOut()" class="w-full bg-green-500 hover:bg-green-600 text-white p-3 rounded-lg transition-colors duration-200">
+                                        <i class="fas fa-check mr-2"></i>Done - Finalize Sequence <span id="done-stockout-sequence-number"></span>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- Completed Stock Out History -->
+                            <div>
+                                <h4 class="text-lg font-medium mb-2">Completed History</h4>
+                                <div class="overflow-x-auto">
+                                    <table class="w-full text-sm">
+                                        <thead class="bg-gray-100 dark:bg-gray-700">
+                                            <tr>
+                                                <th class="p-2 text-left">Seq#</th>
+                                                <th class="p-2 text-left">Item</th>
+                                                <th class="p-2 text-left">Dept</th>
+                                                <th class="p-2 text-left">Qty</th>
+                                                <th class="p-2 text-left">Price</th>
+                                                <th class="p-2 text-left">Date</th>
+                                                <th class="p-2 text-left edit-column" style="display: none;">Actions</th>
+                                                <th class="p-2 text-left user-edit-column" style="display: none;">Edit</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="stock-out-table" class="divide-y divide-gray-200 dark:divide-gray-600">
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Balance Section -->
+                <div id="balance" class="section hidden fade-in">
+                    <h2 class="text-3xl font-bold mb-6">Current Stock Balance</h2>
+                    <div class="bg-gray-50 dark:bg-gray-800 p-6 rounded-lg">
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead class="bg-gray-100 dark:bg-gray-700">
+                                    <tr>
+                                        <th class="p-3 text-left">Item Name</th>
+                                        <th class="p-3 text-left">Stock Type</th>
+                                        <th class="p-3 text-left">Current Stock</th>
+                                        <th class="p-3 text-left">Min Stock</th>
+                                        <th class="p-3 text-left">Unit Cost</th>
+                                        <th class="p-3 text-left">Total Value</th>
+                                        <th class="p-3 text-left">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="balance-table" class="divide-y divide-gray-200 dark:divide-gray-600">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quantity Status Section -->
+                <div id="quantity-status" class="section hidden fade-in">
+                    <h2 class="text-3xl font-bold mb-6">Quantity Status</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 p-6 rounded-lg">
+                            <h3 class="text-lg font-semibold text-red-600 dark:text-red-400 mb-3">Below Minimum Stock</h3>
+                            <div id="low-stock-items" class="space-y-2">
+                                <p class="text-gray-500 dark:text-gray-400">No items below minimum stock</p>
+                            </div>
+                        </div>
+                        <div class="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 p-6 rounded-lg">
+                            <h3 class="text-lg font-semibold text-yellow-600 dark:text-yellow-400 mb-3">At Minimum Stock</h3>
+                            <div id="medium-stock-items" class="space-y-2">
+                                <p class="text-gray-500 dark:text-gray-400">No items at minimum stock</p>
+                            </div>
+                        </div>
+                        <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700 p-6 rounded-lg">
+                            <h3 class="text-lg font-semibold text-green-600 dark:text-green-400 mb-3">Above Minimum Stock</h3>
+                            <div id="high-stock-items" class="space-y-2">
+                                <p class="text-gray-500 dark:text-gray-400">No items above minimum stock</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Expired Date Status Section -->
+                <div id="expired-date" class="section hidden fade-in">
+                    <h2 class="text-3xl font-bold mb-6">Expiry Date Status</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 p-6 rounded-lg">
+                            <h3 class="text-lg font-semibold text-red-600 dark:text-red-400 mb-3">Expired Items</h3>
+                            <div id="expired-items" class="space-y-2">
+                                <p class="text-gray-500 dark:text-gray-400">No expired items</p>
+                            </div>
+                        </div>
+                        <div class="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-700 p-6 rounded-lg">
+                            <h3 class="text-lg font-semibold text-orange-600 dark:text-orange-400 mb-3">Expiring Soon (1 Month)</h3>
+                            <div id="expiring-soon-items" class="space-y-2">
+                                <p class="text-gray-500 dark:text-gray-400">No items expiring soon</p>
+                            </div>
+                        </div>
+                        <div class="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 p-6 rounded-lg">
+                            <h3 class="text-lg font-semibold text-yellow-600 dark:text-yellow-400 mb-3">Coming Soon (1-3 Months)</h3>
+                            <div id="coming-soon-items" class="space-y-2">
+                                <p class="text-gray-500 dark:text-gray-400">No items coming soon</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Reports Section -->
+                <div id="reports" class="section hidden fade-in">
+                    <div class="no-print">
+                        <h2 class="text-3xl font-bold mb-6">Reports</h2>
+                        
+                        <!-- Report Filter Controls -->
+                        <div class="bg-gray-50 dark:bg-gray-800 p-6 rounded-lg mb-6">
+                            <h3 class="text-xl font-semibold mb-4">Report Filters</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">Report Type</label>
+                                    <select id="report-type" class="w-full text-base p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700">
+                                        <option value="inventory-summary">Inventory Summary</option>
+                                        <option value="stock-movement">Stock Movement</option>
+                                        <option value="low-stock">Low Stock Report</option>
+                                        <option value="expiry-report">Expiry Report</option>
+                                        <option value="department-stock-out">Department-wise Stock Out</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">From Date</label>
+                                    <input type="date" id="report-from-date" class="w-full text-base p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">To Date</label>
+                                    <input type="date" id="report-to-date" class="w-full text-base p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">Department</label>
+                                    <select id="report-department" class="w-full text-base p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700">
+                                        <option value="">All Departments</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="flex flex-wrap gap-3">
+                                <button onclick="generateReport()" class="bg-primary hover:bg-primary-dark text-white px-6 py-3 rounded-lg transition-colors duration-200">
+                                    <i class="fas fa-chart-line mr-2"></i>Generate Report
+                                </button>
+                                <button onclick="printReport()" class="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-lg transition-colors duration-200">
+                                    <i class="fas fa-print mr-2"></i>Print Report
+                                </button>
+                                <button onclick="exportToCSV()" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg transition-colors duration-200">
+                                    <i class="fas fa-download mr-2"></i>Export CSV
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Report Content -->
+                    <div id="report-content" class="report-content bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+                        <div class="text-center text-gray-500 dark:text-gray-400 py-12">
+                            <i class="fas fa-chart-bar text-6xl mb-4 opacity-50"></i>
+                            <p class="text-lg">Select a report type and click "Generate Report" to view results</p>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Stock Type Management Modal -->
+    <div id="stock-type-modal" class="modal">
+        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg w-96 max-w-full mx-4">
+            <h3 class="text-xl font-bold mb-4">Manage Stock Types</h3>
+            <form id="stock-type-form" class="mb-4">
+                <div class="flex space-x-2">
+                    <input type="text" name="stockTypeName" placeholder="Stock Type Name" required class="flex-1 text-base p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700">
+                    <button type="submit" class="bg-primary text-white px-4 py-2 rounded hover:bg-primary-dark">Add</button>
+                </div>
+            </form>
+            <div class="space-y-2 mb-4 max-h-60 overflow-y-auto">
+                <div id="stock-types-list"></div>
+            </div>
+            <div class="flex justify-end space-x-2">
+                <button onclick="closeStockTypeModal()" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Department Management Modal -->
+    <div id="department-modal" class="modal">
+        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg w-96 max-w-full mx-4">
+            <h3 class="text-xl font-bold mb-4">Manage Departments</h3>
+            <form id="department-form" class="mb-4">
+                <div class="flex space-x-2">
+                    <input type="text" name="departmentName" placeholder="Department Name" required class="flex-1 text-base p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700">
+                    <button type="submit" class="bg-primary text-white px-4 py-2 rounded hover:bg-primary-dark">Add</button>
+                </div>
+            </form>
+            <div class="space-y-2 mb-4 max-h-60 overflow-y-auto">
+                <div id="departments-list"></div>
+            </div>
+            <div class="flex justify-end space-x-2">
+                <button onclick="closeDepartmentModal()" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div id="edit-modal" class="modal">
+        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg w-96 max-w-full mx-4">
+            <h3 class="text-xl font-bold mb-4" id="edit-modal-title">Edit Item</h3>
+            <form id="edit-form">
+                <div id="edit-form-content"></div>
+                <div class="flex justify-end space-x-2 mt-4">
+                    <button type="button" onclick="closeEditModal()" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">Cancel</button>
+                    <button type="submit" class="bg-primary text-white px-4 py-2 rounded hover:bg-primary-dark">Update</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- User Edit Modal -->
+    <div id="user-edit-modal" class="modal">
+        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg w-96 max-w-full mx-4">
+            <h3 class="text-xl font-bold mb-4" id="user-edit-modal-title">Edit Record</h3>
+            <form id="user-edit-form">
+                <div id="user-edit-form-content"></div>
+                <div class="flex justify-end space-x-2 mt-4">
+                    <button type="button" onclick="closeUserEditModal()" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">Cancel</button>
+                    <button type="submit" class="bg-primary text-white px-4 py-2 rounded hover:bg-primary-dark">Update</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Pending Stock In Edit Modal -->
+    <div id="pending-stockin-edit-modal" class="modal">
+        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg w-96 max-w-full mx-4">
+            <h3 class="text-xl font-bold mb-4">Edit Pending Stock In</h3>
+            <form id="pending-stockin-edit-form">
+                <input type="hidden" name="pendingId">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Quantity</label>
+                        <input type="number" name="quantity" required min="1" class="w-full text-base p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Unit Cost (ETB)</label>
+                        <input type="number" name="unitCost" required min="0" step="0.01" class="w-full text-base p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700">
+                    </div>
+                </div>
+                <div class="flex justify-end space-x-2 mt-4">
+                    <button type="button" onclick="closePendingStockInEditModal()" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">Cancel</button>
+                    <button type="submit" class="bg-primary text-white px-4 py-2 rounded hover:bg-primary-dark">Update</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Pending Stock Out Edit Modal -->
+    <div id="pending-stockout-edit-modal" class="modal">
+        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg w-96 max-w-full mx-4">
+            <h3 class="text-xl font-bold mb-4">Edit Pending Stock Out</h3>
+            <form id="pending-stockout-edit-form">
+                <input type="hidden" name="pendingId">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Quantity</label>
+                        <input type="number" name="quantity" required min="1" class="w-full text-base p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Department</label>
+                        <select name="department" required class="w-full text-base p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700">
+                            <option value="">Select Department</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="flex justify-end space-x-2 mt-4">
+                    <button type="button" onclick="closePendingStockOutEditModal()" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">Cancel</button>
+                    <button type="submit" class="bg-primary text-white px-4 py-2 rounded hover:bg-primary-dark">Update</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Dark mode support
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.documentElement.classList.add('dark');
+        }
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+            if (event.matches) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        });
+
+        // Application State - Removed default data
+        let currentUser = null;
+        let users = [
+            { id: 1, username: 'admin', password: 'admin123', fullName: 'Administrator', role: 'admin', created: new Date().toLocaleDateString() },
+            { id: 2, username: 'user1', password: 'user123', fullName: 'John Doe', role: 'user', created: new Date().toLocaleDateString() }
+        ];
+        let stockData = {
+            stockIn: [],
+            stockOut: [],
+            pendingStockIn: [], // Added pending stock in
+            pendingStockOut: [],
+            inventory: {},
+            departments: [], // Empty initially
+            stockTypes: [], // Empty initially
+            editAccess: [],
+            stockInSequenceCounter: 0,
+            stockOutSequenceCounter: 0,
+            currentStockInSequence: null, // Added for stock in
+            currentStockOutSequence: null
+        };
+        let editMode = false;
+        let currentReportData = null;
+
+        // Helper function to format sequence numbers
+        function formatSequenceNumber(counter, type) {
+            const prefix = type === 'stockIn' ? 'IN' : 'OUT';
+            return `${prefix}${counter.toString().padStart(4, '0')}`;
+        }
+
+        // Authentication Functions
+        document.getElementById('login-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const username = formData.get('username');
+            const password = formData.get('password');
+            
+            const user = users.find(u => u.username === username && u.password === password);
+            if (user) {
+                currentUser = user;
+                document.getElementById('login-screen').style.display = 'none';
+                document.getElementById('main-app').style.display = 'block';
+                document.getElementById('current-user-name').textContent = user.fullName;
+                document.getElementById('current-user-role').textContent = user.role;
+                
+                updateUIForRole();
+                updateDashboard();
+                updateAllDropdowns();
+                updateUsersTable();
+                updateEditAccessTable();
+            } else {
+                alert('Invalid username or password');
+            }
+        });
+
+        function logout() {
+            currentUser = null;
+            document.getElementById('login-screen').style.display = 'block';
+            document.getElementById('main-app').style.display = 'none';
+            document.getElementById('login-form').reset();
+        }
+
+        function updateUIForRole() {
+            const adminElements = document.querySelectorAll('.admin-only');
+            const userElements = document.querySelectorAll('.user-only');
+            
+            if (currentUser.role === 'admin') {
+                adminElements.forEach(el => el.style.display = 'block');
+                userElements.forEach(el => el.style.display = 'none');
+            } else {
+                adminElements.forEach(el => el.style.display = 'none');
+                userElements.forEach(el => el.style.display = 'block');
+                updateUserEditAccess();
+            }
+        }
+
+        // User Management Functions
+        document.getElementById('create-user-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            
+            const newUser = {
+                id: Date.now(),
+                username: formData.get('username'),
+                password: formData.get('password'),
+                fullName: formData.get('fullName'),
+                role: formData.get('role'),
+                created: new Date().toLocaleDateString()
+            };
+            
+            if (users.find(u => u.username === newUser.username)) {
+                alert('Username already exists');
+                return;
+            }
+            
+            users.push(newUser);
+            updateUsersTable();
+            updateEditAccessUserDropdown();
+            e.target.reset();
+            addRecentActivity(`Created new user: ${newUser.fullName}`);
+        });
+
+        function updateUsersTable() {
+            const tbody = document.getElementById('users-table');
+            tbody.innerHTML = users.map(user => `
+                <tr>
+                    <td class="p-3">${user.username}</td>
+                    <td class="p-3">${user.fullName}</td>
+                    <td class="p-3">
+                        <span class="px-2 py-1 rounded text-xs font-semibold ${user.role === 'admin' ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800'}">
+                            ${user.role.toUpperCase()}
+                        </span>
+                    </td>
+                    <td class="p-3">${user.created}</td>
+                    <td class="p-3">
+                        ${user.username !== 'admin' ? `<button onclick="deleteUser(${user.id})" class="text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button>` : '-'}
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function deleteUser(userId) {
+            if (confirm('Are you sure you want to delete this user?')) {
+                users = users.filter(user => user.id !== userId);
+                updateUsersTable();
+                updateEditAccessUserDropdown();
+                addRecentActivity('Deleted user');
+            }
+        }
+
+        // Edit Access Management
+        document.getElementById('edit-access-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            
+            const editAccess = {
+                id: Date.now(),
+                userId: parseInt(formData.get('userId')),
+                sequenceNumber: formData.get('sequenceNumber'),
+                accessType: formData.get('accessType'),
+                validUntil: new Date(formData.get('validUntil')),
+                createdBy: currentUser.id,
+                created: new Date()
+            };
+            
+            stockData.editAccess.push(editAccess);
+            updateEditAccessTable();
+            updateUserEditAccess();
+            e.target.reset();
+            
+            const user = users.find(u => u.id === editAccess.userId);
+            addRecentActivity(`Granted edit access to ${user.fullName} for sequence ${editAccess.sequenceNumber}`);
+        });
+
+        function updateEditAccessUserDropdown() {
+            const select = document.querySelector('select[name="userId"]');
+            select.innerHTML = '<option value="">Select User</option>' +
+                users.filter(u => u.role === 'user').map(user => `<option value="${user.id}">${user.fullName}</option>`).join('');
+        }
+
+        function updateEditAccessTable() {
+            const tbody = document.getElementById('edit-access-table');
+            tbody.innerHTML = stockData.editAccess.map(access => {
+                const user = users.find(u => u.id === access.userId);
+                const isExpired = access.validUntil < new Date();
+                const statusClass = isExpired ? 'text-red-600' : 'text-green-600';
+                const statusText = isExpired ? 'Expired' : 'Active';
+                
+                return `
+                    <tr>
+                        <td class="p-3">${user ? user.fullName : 'Unknown'}</td>
+                        <td class="p-3">${access.sequenceNumber}</td>
+                        <td class="p-3">${access.accessType.replace('_', ' ').toUpperCase()}</td>
+                        <td class="p-3">${access.validUntil.toLocaleString()}</td>
+                        <td class="p-3 ${statusClass} font-semibold">${statusText}</td>
+                        <td class="p-3">
+                            <button onclick="revokeEditAccess(${access.id})" class="text-red-500 hover:text-red-700">
+                                <i class="fas fa-trash"></i> Revoke
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function revokeEditAccess(accessId) {
+            if (confirm('Are you sure you want to revoke this edit access?')) {
+                stockData.editAccess = stockData.editAccess.filter(access => access.id !== accessId);
+                updateEditAccessTable();
+                updateUserEditAccess();
+                addRecentActivity('Revoked edit access');
+            }
+        }
+
+        function updateUserEditAccess() {
+            if (currentUser.role === 'user') {
+                const userEditColumns = document.querySelectorAll('.user-edit-column');
+                const hasAccess = stockData.editAccess.some(access => 
+                    access.userId === currentUser.id && access.validUntil > new Date()
+                );
+                
+                userEditColumns.forEach(col => {
+                    col.style.display = hasAccess ? 'table-cell' : 'none';
+                });
+            }
+        }
+
+        function canUserEdit(sequenceNumber, accessType) {
+            if (currentUser.role === 'admin') return true;
+            
+            const access = stockData.editAccess.find(access => 
+                access.userId === currentUser.id &&
+                access.sequenceNumber === sequenceNumber &&
+                access.validUntil > new Date() &&
+                (access.accessType === accessType || access.accessType === 'edit_both')
+            );
+            
+            return !!access;
+        }
+
+        // Stock Type Management
+        function openStockTypeModal() {
+            document.getElementById('stock-type-modal').classList.add('show');
+            updateStockTypesList();
+        }
+
+        function closeStockTypeModal() {
+            document.getElementById('stock-type-modal').classList.remove('show');
+        }
+
+        document.getElementById('stock-type-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const stockTypeName = formData.get('stockTypeName').trim();
+            
+            if (stockTypeName && !stockData.stockTypes.includes(stockTypeName)) {
+                stockData.stockTypes.push(stockTypeName);
+                updateStockTypesList();
+                updateStockTypeDropdowns();
+                e.target.reset();
+                addRecentActivity(`Added stock type: ${stockTypeName}`);
+            }
+        });
+
+        function updateStockTypesList() {
+            const list = document.getElementById('stock-types-list');
+            list.innerHTML = stockData.stockTypes.map((type, index) => `
+                <div class="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-700 rounded">
+                    <span>${type}</span>
+                    <button onclick="deleteStockType(${index})" class="text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button>
+                </div>
+            `).join('');
+        }
+
+        function deleteStockType(index) {
+            if (confirm('Are you sure you want to delete this stock type?')) {
+                stockData.stockTypes.splice(index, 1);
+                updateStockTypesList();
+                updateStockTypeDropdowns();
+                addRecentActivity('Deleted stock type');
+            }
+        }
+
+        function updateStockTypeDropdowns() {
+            const selects = document.querySelectorAll('select[name="stockType"]');
+            selects.forEach(select => {
+                const currentValue = select.value;
+                select.innerHTML = '<option value="">Select Stock Type</option>' +
+                    stockData.stockTypes.map(type => `<option value="${type}">${type}</option>`).join('');
+                select.value = currentValue;
+            });
+        }
+
+        // Department Management
+        function openDepartmentModal() {
+            if (currentUser.role !== 'admin') return;
+            document.getElementById('department-modal').classList.add('show');
+            updateDepartmentsList();
+        }
+
+        function closeDepartmentModal() {
+            document.getElementById('department-modal').classList.remove('show');
+        }
+
+        function updateDepartmentsList() {
+            const list = document.getElementById('departments-list');
+            list.innerHTML = stockData.departments.map((dept, index) => `
+                <div class="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-700 rounded">
+                    <span>${dept}</span>
+                    <button onclick="deleteDepartment(${index})" class="text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button>
+                </div>
+            `).join('');
+            
+            updateDepartmentDropdowns();
+        }
+
+        function updateDepartmentDropdowns() {
+            const selects = document.querySelectorAll('select[name="department"]');
+            selects.forEach(select => {
+                const currentValue = select.value;
+                select.innerHTML = '<option value="">Select Department</option>' +
+                    stockData.departments.map(dept => `<option value="${dept}">${dept}</option>`).join('');
+                select.value = currentValue;
+            });
+            
+            // Also update pending edit modal dropdown
+            const pendingEditSelect = document.querySelector('#pending-stockout-edit-modal select[name="department"]');
+            if (pendingEditSelect) {
+                const currentValue = pendingEditSelect.value;
+                pendingEditSelect.innerHTML = '<option value="">Select Department</option>' +
+                    stockData.departments.map(dept => `<option value="${dept}">${dept}</option>`).join('');
+                pendingEditSelect.value = currentValue;
+            }
+        }
+
+        function deleteDepartment(index) {
+            stockData.departments.splice(index, 1);
+            updateDepartmentsList();
+            addRecentActivity('Deleted department');
+        }
+
+        document.getElementById('department-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const departmentName = formData.get('departmentName').trim();
+            
+            if (departmentName && !stockData.departments.includes(departmentName)) {
+                stockData.departments.push(departmentName);
+                updateDepartmentsList();
+                e.target.reset();
+                addRecentActivity(`Added department: ${departmentName}`);
+            }
+        });
+
+        // Sidebar toggle functionality
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const mainContent = document.getElementById('main-content');
+            const sidebarIcon = document.getElementById('sidebar-icon');
+            
+            sidebar.classList.toggle('collapsed');
+            
+            if (sidebar.classList.contains('collapsed')) {
+                sidebarIcon.className = 'fas fa-chevron-right';
+                mainContent.classList.add('expanded');
+            } else {
+                sidebarIcon.className = 'fas fa-chevron-left';
+                mainContent.classList.remove('expanded');
+            }
+        }
+
+        // Navigation
+        function showSection(sectionId) {
+            const sections = document.querySelectorAll('.section');
+            sections.forEach(section => section.classList.add('hidden'));
+            
+            document.getElementById(sectionId).classList.remove('hidden');
+            
+            const navItems = document.querySelectorAll('.nav-item');
+            navItems.forEach(item => {
+                item.classList.remove('bg-primary', 'text-white');
+            });
+            event.target.closest('.nav-item').classList.add('bg-primary', 'text-white');
+            
+            if (sectionId === 'balance') updateBalanceTable();
+            if (sectionId === 'quantity-status') updateQuantityStatus();
+            if (sectionId === 'expired-date') updateExpiryStatus();
+            if (sectionId === 'reports') {
+                updateReportDepartmentDropdown();
+                setDefaultReportDates();
+            }
+            if (sectionId === 'admin') {
+                updateUsersTable();
+                updateEditAccessTable();
+                updateEditAccessUserDropdown();
+            }
+            if (sectionId === 'stock-in') {
+                updatePendingStockInTable();
+                updateStockInTable();
+            }
+            if (sectionId === 'stock-out') {
+                updatePendingStockOutTable();
+                updateStockOutTable();
+            }
+        }
+
+        // Edit Mode Toggle (Admin only)
+        function toggleEditMode() {
+            if (currentUser.role !== 'admin') return;
+            
+            editMode = !editMode;
+            const toggle = document.getElementById('edit-toggle');
+            const editColumns = document.querySelectorAll('.edit-column');
+            
+            if (editMode) {
+                toggle.innerHTML = '<i class="fas fa-edit mr-2"></i>Edit Mode: ON';
+                toggle.classList.remove('bg-yellow-500', 'hover:bg-yellow-600');
+                toggle.classList.add('bg-green-500', 'hover:bg-green-600');
+                editColumns.forEach(col => col.style.display = 'table-cell');
+            } else {
+                toggle.innerHTML = '<i class="fas fa-edit mr-2"></i>Edit Mode: OFF';
+                toggle.classList.remove('bg-green-500', 'hover:bg-green-600');
+                toggle.classList.add('bg-yellow-500', 'hover:bg-yellow-600');
+                editColumns.forEach(col => col.style.display = 'none');
+            }
+            
+            updateStockInTable();
+            updateStockOutTable();
+        }
+
+        function updateAllDropdowns() {
+            updateDepartmentDropdowns();
+            updateStockTypeDropdowns();
+            updateStockOutDropdown();
+            updateEditAccessUserDropdown();
+        }
+
+        // Stock In Form - Updated with pending functionality
+        document.getElementById('stock-in-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            
+            // Check if stock type exists
+            const stockType = formData.get('stockType');
+            if (!stockType) {
+                alert('Please add stock types first in the Manage Stock Types section');
+                return;
+            }
+            
+            // Initialize sequence if first item
+            if (stockData.currentStockInSequence === null) {
+                stockData.stockInSequenceCounter++;
+                stockData.currentStockInSequence = formatSequenceNumber(stockData.stockInSequenceCounter, 'stockIn');
+                
+                // Show sequence display
+                document.getElementById('current-stockin-sequence-display').style.display = 'inline';
+                document.getElementById('stockin-sequence-number-display').textContent = stockData.currentStockInSequence;
+                document.getElementById('done-stockin-sequence-number').textContent = stockData.currentStockInSequence;
+                document.getElementById('pending-stock-in-section').style.display = 'block';
+            }
+            
+            const stockInItem = {
+                id: Date.now(),
+                sequenceNumber: stockData.currentStockInSequence,
+                itemName: formData.get('itemName'),
+                stockType: stockType,
+                quantity: parseInt(formData.get('quantity')),
+                unitCost: parseFloat(formData.get('unitCost')),
+                minStock: parseInt(formData.get('minStock')),
+                expiryDate: formData.get('expiryDate'),
+                date: new Date().toLocaleDateString(),
+                totalCost: parseInt(formData.get('quantity')) * parseFloat(formData.get('unitCost')),
+                createdBy: currentUser.id,
+                isPending: true
+            };
+            
+            stockData.pendingStockIn.push(stockInItem);
+            updatePendingStockInTable();
+            updateDashboard();
+            addRecentActivity(`Stock In (Pending): ${stockInItem.itemName} (${stockInItem.quantity} units) - ${stockInItem.sequenceNumber}`);
+            e.target.reset();
+        });
+
+        // Stock Out Form - Fixed
+        document.getElementById('stock-out-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const itemName = formData.get('itemName');
+            const quantity = parseInt(formData.get('quantity'));
+            const department = formData.get('department');
+            
+            // Check if item and department exist
+            if (!itemName) {
+                alert('Please select an item');
+                return;
+            }
+            
+            if (!department) {
+                alert('Please add departments first in the Manage Departments section');
+                return;
+            }
+            
+            if (!stockData.inventory[itemName] || stockData.inventory[itemName].quantity < quantity) {
+                alert('Insufficient stock!');
+                return;
+            }
+            
+            // Initialize sequence if first item
+            if (stockData.currentStockOutSequence === null) {
+                stockData.stockOutSequenceCounter++;
+                stockData.currentStockOutSequence = formatSequenceNumber(stockData.stockOutSequenceCounter, 'stockOut');
+                
+                // Show sequence display
+                document.getElementById('current-stockout-sequence-display').style.display = 'inline';
+                document.getElementById('stockout-sequence-number-display').textContent = stockData.currentStockOutSequence;
+                document.getElementById('done-stockout-sequence-number').textContent = stockData.currentStockOutSequence;
+                document.getElementById('pending-stock-out-section').style.display = 'block';
+            }
+            
+            const stockOutItem = {
+                id: Date.now(),
+                sequenceNumber: stockData.currentStockOutSequence,
+                itemName: itemName,
+                department: department,
+                quantity: quantity,
+                unitPrice: parseFloat(formData.get('unitPrice')),
+                date: new Date().toLocaleDateString(),
+                totalPrice: quantity * parseFloat(formData.get('unitPrice')),
+                createdBy: currentUser.id,
+                isPending: true
+            };
+            
+            stockData.pendingStockOut.push(stockOutItem);
+            updateInventory(itemName, null, -quantity, 0, 0, null, 'out');
+            updatePendingStockOutTable();
+            updateDashboard();
+            updateStockOutDropdown();
+            addRecentActivity(`Stock Out (Pending): ${stockOutItem.itemName} (${stockOutItem.quantity} units) - ${stockOutItem.department} - ${stockOutItem.sequenceNumber}`);
+            e.target.reset();
+        });
+
+        // Finalize Stock In
+        function finalizeStockIn() {
+            if (stockData.pendingStockIn.length === 0) return;
+            
+            // Move all pending items to completed and update inventory
+            stockData.pendingStockIn.forEach(item => {
+                item.isPending = false;
+                stockData.stockIn.push(item);
+                updateInventory(item.itemName, item.stockType, item.quantity, item.unitCost, item.minStock, item.expiryDate, 'in');
+            });
+            
+            addRecentActivity(`Finalized stock in sequence ${stockData.currentStockInSequence} with ${stockData.pendingStockIn.length} items`);
+            
+            // Clear pending state
+            stockData.pendingStockIn = [];
+            stockData.currentStockInSequence = null;
+            
+            // Hide UI elements
+            document.getElementById('current-stockin-sequence-display').style.display = 'none';
+            document.getElementById('pending-stock-in-section').style.display = 'none';
+            
+            // Update tables
+            updatePendingStockInTable();
+            updateStockInTable();
+            updateDashboard();
+            updateStockOutDropdown();
+        }
+
+        // Finalize Stock Out
+        function finalizeStockOut() {
+            if (stockData.pendingStockOut.length === 0) return;
+            
+            // Move all pending items to completed stock out
+            stockData.pendingStockOut.forEach(item => {
+                item.isPending = false;
+                stockData.stockOut.push(item);
+            });
+            
+            addRecentActivity(`Finalized stock out sequence ${stockData.currentStockOutSequence} with ${stockData.pendingStockOut.length} items`);
+            
+            // Clear pending state
+            stockData.pendingStockOut = [];
+            stockData.currentStockOutSequence = null;
+            
+            // Hide UI elements
+            document.getElementById('current-stockout-sequence-display').style.display = 'none';
+            document.getElementById('pending-stock-out-section').style.display = 'none';
+            
+            // Update tables
+            updatePendingStockOutTable();
+            updateStockOutTable();
+            updateDashboard();
+        }
+
+        // Edit pending stock in item
+        function editPendingStockIn(id) {
+            const item = stockData.pendingStockIn.find(item => item.id === id);
+            if (!item) return;
+            
+            document.querySelector('#pending-stockin-edit-modal input[name="pendingId"]').value = id;
+            document.querySelector('#pending-stockin-edit-modal input[name="quantity"]').value = item.quantity;
+            document.querySelector('#pending-stockin-edit-modal input[name="unitCost"]').value = item.unitCost;
+            
+            document.getElementById('pending-stockin-edit-modal').classList.add('show');
+        }
+
+        function closePendingStockInEditModal() {
+            document.getElementById('pending-stockin-edit-modal').classList.remove('show');
+        }
+
+        // Pending stock in edit form handler
+        document.getElementById('pending-stockin-edit-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const pendingId = parseInt(formData.get('pendingId'));
+            const newQuantity = parseInt(formData.get('quantity'));
+            const newUnitCost = parseFloat(formData.get('unitCost'));
+            
+            const item = stockData.pendingStockIn.find(item => item.id === pendingId);
+            if (!item) return;
+            
+            // Update item
+            item.quantity = newQuantity;
+            item.unitCost = newUnitCost;
+            item.totalCost = newQuantity * newUnitCost;
+            
+            updatePendingStockInTable();
+            updateDashboard();
+            closePendingStockInEditModal();
+            addRecentActivity(`Edited pending stock in: ${item.itemName}`);
+        });
+
+        // Remove pending stock in item
+        function removePendingStockIn(id) {
+            const item = stockData.pendingStockIn.find(item => item.id === id);
+            if (!item) return;
+            
+            // Remove from pending
+            stockData.pendingStockIn = stockData.pendingStockIn.filter(item => item.id !== id);
+            
+            // If no more pending items, reset sequence
+            if (stockData.pendingStockIn.length === 0) {
+                stockData.currentStockInSequence = null;
+                document.getElementById('current-stockin-sequence-display').style.display = 'none';
+                document.getElementById('pending-stock-in-section').style.display = 'none';
+            }
+            
+            updatePendingStockInTable();
+            updateDashboard();
+            addRecentActivity(`Removed pending stock in: ${item.itemName}`);
+        }
+
+        // Edit pending stock out item
+        function editPendingStockOut(id) {
+            const item = stockData.pendingStockOut.find(item => item.id === id);
+            if (!item) return;
+            
+            document.querySelector('#pending-stockout-edit-modal input[name="pendingId"]').value = id;
+            document.querySelector('#pending-stockout-edit-modal input[name="quantity"]').value = item.quantity;
+            document.querySelector('#pending-stockout-edit-modal select[name="department"]').value = item.department;
+            
+            updateDepartmentDropdowns();
+            document.querySelector('#pending-stockout-edit-modal select[name="department"]').value = item.department;
+            
+            document.getElementById('pending-stockout-edit-modal').classList.add('show');
+        }
+
+        function closePendingStockOutEditModal() {
+            document.getElementById('pending-stockout-edit-modal').classList.remove('show');
+        }
+
+        // Pending stock out edit form handler
+        document.getElementById('pending-stockout-edit-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const pendingId = parseInt(formData.get('pendingId'));
+            const newQuantity = parseInt(formData.get('quantity'));
+            const newDepartment = formData.get('department');
+            
+            const item = stockData.pendingStockOut.find(item => item.id === pendingId);
+            if (!item) return;
+            
+            // Restore old quantity to inventory
+            updateInventory(item.itemName, null, item.quantity, 0, 0, null, 'in');
+            
+            // Check if new quantity is available
+            if (!stockData.inventory[item.itemName] || stockData.inventory[item.itemName].quantity < newQuantity) {
+                alert('Insufficient stock for the new quantity!');
+                // Restore the original quantity reduction
+                updateInventory(item.itemName, null, -item.quantity, 0, 0, null, 'out');
+                return;
+            }
+            
+            // Apply new quantity reduction
+            updateInventory(item.itemName, null, -newQuantity, 0, 0, null, 'out');
+            
+            // Update item
+            item.quantity = newQuantity;
+            item.department = newDepartment;
+            item.totalPrice = newQuantity * item.unitPrice;
+            
+            updatePendingStockOutTable();
+            updateDashboard();
+            updateStockOutDropdown();
+            closePendingStockOutEditModal();
+            addRecentActivity(`Edited pending stock out: ${item.itemName}`);
+        });
+
+        // Remove pending stock out item
+        function removePendingStockOut(id) {
+            const item = stockData.pendingStockOut.find(item => item.id === id);
+            if (!item) return;
+            
+            // Restore inventory
+            updateInventory(item.itemName, null, item.quantity, 0, 0, null, 'in');
+            
+            // Remove from pending
+            stockData.pendingStockOut = stockData.pendingStockOut.filter(item => item.id !== id);
+            
+            // If no more pending items, reset sequence
+            if (stockData.pendingStockOut.length === 0) {
+                stockData.currentStockOutSequence = null;
+                document.getElementById('current-stockout-sequence-display').style.display = 'none';
+                document.getElementById('pending-stock-out-section').style.display = 'none';
+            }
+            
+            updatePendingStockOutTable();
+            updateDashboard();
+            updateStockOutDropdown();
+            addRecentActivity(`Removed pending stock out: ${item.itemName}`);
+        }
+
+        // Update inventory
+        function updateInventory(itemName, stockType, quantity, unitCost, minStock, expiryDate, type) {
+            if (!stockData.inventory[itemName]) {
+                stockData.inventory[itemName] = {
+                    quantity: 0,
+                    stockType: '',
+                    unitCost: 0,
+                    minStock: 0,
+                    expiryDate: null
+                };
+            }
+            
+            if (type === 'in') {
+                stockData.inventory[itemName].quantity += quantity;
+                stockData.inventory[itemName].stockType = stockType;
+                stockData.inventory[itemName].unitCost = unitCost;
+                stockData.inventory[itemName].minStock = minStock;
+                stockData.inventory[itemName].expiryDate = expiryDate;
+            } else {
+                stockData.inventory[itemName].quantity -= quantity;
+            }
+        }
+
+        // User Edit Functions
+        function editUserRecord(sequenceNumber, type) {
+            let item;
+            if (type === 'stockIn') {
+                item = stockData.stockIn.find(item => item.sequenceNumber === sequenceNumber);
+            } else {
+                item = stockData.stockOut.find(item => item.sequenceNumber === sequenceNumber);
+            }
+            
+            if (!item) return;
+            
+            document.getElementById('user-edit-modal-title').textContent = `Edit ${type === 'stockIn' ? 'Stock In' : 'Stock Out'} Record ${sequenceNumber}`;
+            
+            let formContent = `
+                <input type="hidden" name="type" value="${type}">
+                <input type="hidden" name="sequenceNumber" value="${sequenceNumber}">
+                <div class="space-y-4">
+            `;
+            
+            const canEditNumber = canUserEdit(sequenceNumber, 'edit_number');
+            const canEditDate = canUserEdit(sequenceNumber, 'edit_date');
+            
+            if (type === 'stockIn') {
+                formContent += `
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Quantity</label>
+                        <input type="number" name="quantity" value="${item.quantity}" ${canEditNumber ? '' : 'readonly'} min="1" class="w-full text-base p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Unit Cost (ETB)</label>
+                        <input type="number" name="unitCost" value="${item.unitCost}" ${canEditNumber ? '' : 'readonly'} min="0" step="0.01" class="w-full text-base p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Expiry Date</label>
+                        <input type="date" name="expiryDate" value="${item.expiryDate}" ${canEditDate ? '' : 'readonly'} class="w-full text-base p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700">
+                    </div>
+                `;
+            } else {
+                formContent += `
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Quantity</label>
+                        <input type="number" name="quantity" value="${item.quantity}" ${canEditNumber ? '' : 'readonly'} min="1" class="w-full text-base p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Unit Selling Price (ETB)</label>
+                        <input type="number" name="unitPrice" value="${item.unitPrice}" ${canEditNumber ? '' : 'readonly'} min="0" step="0.01" class="w-full text-base p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700">
+                    </div>
+                `;
+            }
+            
+            formContent += '</div>';
+            
+            document.getElementById('user-edit-form-content').innerHTML = formContent;
+            document.getElementById('user-edit-modal').classList.add('show');
+        }
+
+        function closeUserEditModal() {
+            document.getElementById('user-edit-modal').classList.remove('show');
+        }
+
+        // User Edit Form Handler
+        document.getElementById('user-edit-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const type = formData.get('type');
+            const sequenceNumber = formData.get('sequenceNumber');
+            
+            let item;
+            if (type === 'stockIn') {
+                item = stockData.stockIn.find(item => item.sequenceNumber === sequenceNumber);
+                if (item && canUserEdit(sequenceNumber, 'edit_number')) {
+                    item.quantity = parseInt(formData.get('quantity'));
+                    item.unitCost = parseFloat(formData.get('unitCost'));
+                    item.totalCost = item.quantity * item.unitCost;
+                }
+                if (item && canUserEdit(sequenceNumber, 'edit_date')) {
+                    item.expiryDate = formData.get('expiryDate');
+                }
+                if (item) {
+                    updateStockInTable();
+                    addRecentActivity(`User edited stock in record ${sequenceNumber}`);
+                }
+            } else if (type === 'stockOut') {
+                item = stockData.stockOut.find(item => item.sequenceNumber === sequenceNumber);
+                if (item && canUserEdit(sequenceNumber, 'edit_number')) {
+                    item.quantity = parseInt(formData.get('quantity'));
+                    item.unitPrice = parseFloat(formData.get('unitPrice'));
+                    item.totalPrice = item.quantity * item.unitPrice;
+                }
+                if (item) {
+                    updateStockOutTable();
+                    addRecentActivity(`User edited stock out record ${sequenceNumber}`);
+                }
+            }
+            
+            updateDashboard();
+            closeUserEditModal();
+        });
+
+        // Admin Edit Functions
+        function editStockIn(id) {
+            if (currentUser.role !== 'admin') return;
+            
+            const item = stockData.stockIn.find(item => item.id === id);
+            if (!item) return;
+            
+            document.getElementById('edit-modal-title').textContent = 'Edit Stock In';
+            document.getElementById('edit-form-content').innerHTML = `
+                <input type="hidden" name="type" value="stockIn">
+                <input type="hidden" name="id" value="${id}">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Item Name</label>
+                        <input type="text" name="itemName" value="${item.itemName}" required class="w-full text-base p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Stock Type</label>
+                        <select name="stockType" required class="w-full text-base p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700">
+                            ${stockData.stockTypes.map(type => `<option value="${type}" ${type === item.stockType ? 'selected' : ''}>${type}</option>`).join('')}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Quantity</label>
+                        <input type="number" name="quantity" value="${item.quantity}" required min="1" class="w-full text-base p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Unit Cost (ETB)</label>
+                        <input type="number" name="unitCost" value="${item.unitCost}" required min="0" step="0.01" class="w-full text-base p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Expiry Date</label>
+                        <input type="date" name="expiryDate" value="${item.expiryDate}" required class="w-full text-base p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700">
+                    </div>
+                </div>
+            `;
+            document.getElementById('edit-modal').classList.add('show');
+        }
+
+        function editStockOut(id) {
+            if (currentUser.role !== 'admin') return;
+            
+            const item = stockData.stockOut.find(item => item.id === id);
+            if (!item) return;
+            
+            document.getElementById('edit-modal-title').textContent = 'Edit Stock Out';
+            document.getElementById('edit-form-content').innerHTML = `
+                <input type="hidden" name="type" value="stockOut">
+                <input type="hidden" name="id" value="${id}">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Department</label>
+                        <select name="department" required class="w-full text-base p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700">
+                            ${stockData.departments.map(dept => `<option value="${dept}" ${dept === item.department ? 'selected' : ''}>${dept}</option>`).join('')}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Quantity</label>
+                        <input type="number" name="quantity" value="${item.quantity}" required min="1" class="w-full text-base p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Unit Selling Price (ETB)</label>
+                        <input type="number" name="unitPrice" value="${item.unitPrice}" required min="0" step="0.01" class="w-full text-base p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700">
+                    </div>
+                </div>
+            `;
+            document.getElementById('edit-modal').classList.add('show');
+        }
+
+        function deleteStockIn(id) {
+            if (currentUser.role !== 'admin') return;
+            
+            if (confirm('Are you sure you want to delete this stock in record?')) {
+                stockData.stockIn = stockData.stockIn.filter(item => item.id !== id);
+                updateStockInTable();
+                updateDashboard();
+                addRecentActivity('Deleted stock in record');
+            }
+        }
+
+        function deleteStockOut(id) {
+            if (currentUser.role !== 'admin') return;
+            
+            if (confirm('Are you sure you want to delete this stock out record?')) {
+                stockData.stockOut = stockData.stockOut.filter(item => item.id !== id);
+                updateStockOutTable();
+                updateDashboard();
+                addRecentActivity('Deleted stock out record');
+            }
+        }
+
+        function closeEditModal() {
+            document.getElementById('edit-modal').classList.remove('show');
+        }
+
+        // Admin Edit Form Handler
+        document.getElementById('edit-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            if (currentUser.role !== 'admin') return;
+            
+            const formData = new FormData(e.target);
+            const type = formData.get('type');
+            const id = parseInt(formData.get('id'));
+            
+            if (type === 'stockIn') {
+                const item = stockData.stockIn.find(item => item.id === id);
+                if (item) {
+                    item.itemName = formData.get('itemName');
+                    item.stockType = formData.get('stockType');
+                    item.quantity = parseInt(formData.get('quantity'));
+                    item.unitCost = parseFloat(formData.get('unitCost'));
+                    item.expiryDate = formData.get('expiryDate');
+                    item.totalCost = item.quantity * item.unitCost;
+                    updateStockInTable();
+                    updateDashboard();
+                    addRecentActivity(`Updated stock in record: ${item.itemName}`);
+                }
+            } else if (type === 'stockOut') {
+                const item = stockData.stockOut.find(item => item.id === id);
+                if (item) {
+                    item.department = formData.get('department');
+                    item.quantity = parseInt(formData.get('quantity'));
+                    item.unitPrice = parseFloat(formData.get('unitPrice'));
+                    item.totalPrice = item.quantity * item.unitPrice;
+                    updateStockOutTable();
+                    updateDashboard();
+                    addRecentActivity(`Updated stock out record: ${item.itemName}`);
+                }
+            }
+            
+            closeEditModal();
+        });
+
+        // Update tables and displays
+        function updatePendingStockInTable() {
+            const tbody = document.getElementById('pending-stock-in-table');
+            tbody.innerHTML = stockData.pendingStockIn.map(item => `
+                <tr class="pending-stock">
+                    <td class="p-2">${item.itemName}</td>
+                    <td class="p-2">${item.stockType}</td>
+                    <td class="p-2">${item.quantity}</td>
+                    <td class="p-2">ETB ${item.unitCost.toFixed(2)}</td>
+                    <td class="p-2">ETB ${item.totalCost.toFixed(2)}</td>
+                    <td class="p-2">
+                        <button onclick="editPendingStockIn(${item.id})" class="text-blue-500 hover:text-blue-700 mr-2">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button onclick="removePendingStockIn(${item.id})" class="text-red-500 hover:text-red-700">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function updateStockInTable() {
+            const tbody = document.getElementById('stock-in-table');
+            tbody.innerHTML = stockData.stockIn.map(item => {
+                return `
+                    <tr>
+                        <td class="p-2">${item.sequenceNumber}</td>
+                        <td class="p-2">${item.itemName}</td>
+                        <td class="p-2">${item.stockType || 'N/A'}</td>
+                        <td class="p-2">${item.quantity}</td>
+                        <td class="p-2">ETB ${item.totalCost.toFixed(2)}</td>
+                        <td class="p-2">${item.date}</td>
+                        <td class="p-2 edit-column" style="display: ${editMode && currentUser.role === 'admin' ? 'table-cell' : 'none'};">
+                            <button onclick="editStockIn(${item.id})" class="text-blue-500 hover:text-blue-700 mr-2"><i class="fas fa-edit"></i></button>
+                            <button onclick="deleteStockIn(${item.id})" class="text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button>
+                        </td>
+                        <td class="p-2 user-edit-column" style="display: ${currentUser && currentUser.role === 'user' && (canUserEdit(item.sequenceNumber, 'edit_number') || canUserEdit(item.sequenceNumber, 'edit_date')) ? 'table-cell' : 'none'};">
+                            <button onclick="editUserRecord('${item.sequenceNumber}', 'stockIn')" class="text-green-500 hover:text-green-700"><i class="fas fa-edit"></i></button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function updatePendingStockOutTable() {
+            const tbody = document.getElementById('pending-stock-out-table');
+            tbody.innerHTML = stockData.pendingStockOut.map(item => `
+                <tr class="pending-stock">
+                    <td class="p-2">${item.itemName}</td>
+                    <td class="p-2">${item.department}</td>
+                    <td class="p-2">${item.quantity}</td>
+                    <td class="p-2">ETB ${item.unitPrice.toFixed(2)}</td>
+                    <td class="p-2">ETB ${item.totalPrice.toFixed(2)}</td>
+                    <td class="p-2">
+                        <button onclick="editPendingStockOut(${item.id})" class="text-blue-500 hover:text-blue-700 mr-2">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button onclick="removePendingStockOut(${item.id})" class="text-red-500 hover:text-red-700">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function updateStockOutTable() {
+            const tbody = document.getElementById('stock-out-table');
+            tbody.innerHTML = stockData.stockOut.map(item => {
+                return `
+                    <tr>
+                        <td class="p-2">${item.sequenceNumber}</td>
+                        <td class="p-2">${item.itemName}</td>
+                        <td class="p-2">${item.department}</td>
+                        <td class="p-2">${item.quantity}</td>
+                        <td class="p-2">ETB ${item.totalPrice.toFixed(2)}</td>
+                        <td class="p-2">${item.date}</td>
+                        <td class="p-2 edit-column" style="display: ${editMode && currentUser.role === 'admin' ? 'table-cell' : 'none'};">
+                            <button onclick="editStockOut(${item.id})" class="text-blue-500 hover:text-blue-700 mr-2"><i class="fas fa-edit"></i></button>
+                            <button onclick="deleteStockOut(${item.id})" class="text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button>
+                        </td>
+                        <td class="p-2 user-edit-column" style="display: ${currentUser && currentUser.role === 'user' && canUserEdit(item.sequenceNumber, 'edit_number') ? 'table-cell' : 'none'};">
+                            <button onclick="editUserRecord('${item.sequenceNumber}', 'stockOut')" class="text-green-500 hover:text-green-700"><i class="fas fa-edit"></i></button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function updateBalanceTable() {
+            const tbody = document.getElementById('balance-table');
+            tbody.innerHTML = Object.entries(stockData.inventory)
+                .filter(([name, data]) => data.quantity > 0)
+                .map(([name, data]) => {
+                    let status = 'Above Minimum';
+                    let statusColor = 'text-green-600';
+                    
+                    if (data.quantity < data.minStock) {
+                        status = 'Below Minimum';
+                        statusColor = 'text-red-600';
+                    } else if (data.quantity === data.minStock) {
+                        status = 'At Minimum';
+                        statusColor = 'text-yellow-600';
+                    }
+                    
+                    return `
+                        <tr>
+                            <td class="p-3">${name}</td>
+                            <td class="p-3">${data.stockType || 'N/A'}</td>
+                            <td class="p-3">${data.quantity}</td>
+                            <td class="p-3">${data.minStock}</td>
+                            <td class="p-3">ETB ${data.unitCost.toFixed(2)}</td>
+                            <td class="p-3">ETB ${(data.quantity * data.unitCost).toFixed(2)}</td>
+                            <td class="p-3 ${statusColor} font-semibold">${status}</td>
+                        </tr>
+                    `;
+                }).join('');
+        }
+
+        function updateStockOutDropdown() {
+            const select = document.querySelector('#stock-out-form select[name="itemName"]');
+            const options = ['<option value="">Select Item</option>'];
+            Object.entries(stockData.inventory)
+                .filter(([name, data]) => data.quantity > 0)
+                .forEach(([name, data]) => {
+                    options.push(`<option value="${name}">${name} (Available: ${data.quantity})</option>`);
+                });
+            select.innerHTML = options.join('');
+        }
+
+        function updateDashboard() {
+            const totalStockIn = stockData.stockIn.reduce((sum, item) => sum + item.totalCost, 0);
+            const totalStockOut = stockData.stockOut.reduce((sum, item) => sum + item.totalPrice, 0);
+            const currentBalance = totalStockIn - totalStockOut;
+            const totalItems = Object.values(stockData.inventory).reduce((sum, item) => sum + item.quantity, 0);
+            
+            document.getElementById('total-stock-in').textContent = `ETB ${totalStockIn.toFixed(2)}`;
+            document.getElementById('total-stock-out').textContent = `ETB ${totalStockOut.toFixed(2)}`;
+            document.getElementById('current-balance').textContent = `ETB ${currentBalance.toFixed(2)}`;
+            document.getElementById('total-items').textContent = totalItems;
+        }
+
+        function updateQuantityStatus() {
+            const lowStock = document.getElementById('low-stock-items');
+            const mediumStock = document.getElementById('medium-stock-items');
+            const highStock = document.getElementById('high-stock-items');
+            
+            const low = [], medium = [], high = [];
+            
+            Object.entries(stockData.inventory).forEach(([name, data]) => {
+                if (data.quantity > 0) {
+                    if (data.quantity < data.minStock) {
+                        low.push(`${name}: ${data.quantity} units (Min: ${data.minStock})`);
+                    } else if (data.quantity === data.minStock) {
+                        medium.push(`${name}: ${data.quantity} units (Min: ${data.minStock})`);
+                    } else {
+                        high.push(`${name}: ${data.quantity} units (Min: ${data.minStock})`);
+                    }
+                }
+            });
+            
+            lowStock.innerHTML = low.length ? low.map(item => `<p class="text-sm">${item}</p>`).join('') : '<p class="text-gray-500 dark:text-gray-400">No items below minimum stock</p>';
+            mediumStock.innerHTML = medium.length ? medium.map(item => `<p class="text-sm">${item}</p>`).join('') : '<p class="text-gray-500 dark:text-gray-400">No items at minimum stock</p>';
+            highStock.innerHTML = high.length ? high.map(item => `<p class="text-sm">${item}</p>`).join('') : '<p class="text-gray-500 dark:text-gray-400">No items above minimum stock</p>';
+        }
+
+        function updateExpiryStatus() {
+            const expired = document.getElementById('expired-items');
+            const expiringSoon = document.getElementById('expiring-soon-items');
+            const comingSoon = document.getElementById('coming-soon-items');
+            
+            const today = new Date();
+            const oneMonthFromNow = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000);
+            const threeMonthsFromNow = new Date(today.getTime() + 90 * 24 * 60 * 60 * 1000);
+            
+            const expiredItems = [], expiringSoonItems = [], comingSoonItems = [];
+            
+            Object.entries(stockData.inventory).forEach(([name, data]) => {
+                if (data.quantity > 0 && data.expiryDate) {
+                    const expiryDate = new Date(data.expiryDate);
+                    if (expiryDate < today) {
+                        expiredItems.push(`${name}: Expired on ${data.expiryDate}`);
+                    } else if (expiryDate <= oneMonthFromNow) {
+                        expiringSoonItems.push(`${name}: Expires on ${data.expiryDate}`);
+                    } else if (expiryDate <= threeMonthsFromNow) {
+                        comingSoonItems.push(`${name}: Expires on ${data.expiryDate}`);
+                    }
+                }
+            });
+            
+            expired.innerHTML = expiredItems.length ? expiredItems.map(item => `<p class="text-sm">${item}</p>`).join('') : '<p class="text-gray-500 dark:text-gray-400">No expired items</p>';
+            expiringSoon.innerHTML = expiringSoonItems.length ? expiringSoonItems.map(item => `<p class="text-sm">${item}</p>`).join('') : '<p class="text-gray-500 dark:text-gray-400">No items expiring soon</p>';
+            comingSoon.innerHTML = comingSoonItems.length ? comingSoonItems.map(item => `<p class="text-sm">${item}</p>`).join('') : '<p class="text-gray-500 dark:text-gray-400">No items coming soon</p>';
+        }
+
+        function addRecentActivity(activity) {
+            const container = document.getElementById('recent-activity');
+            const activityElement = document.createElement('div');
+            activityElement.className = 'text-sm p-2 bg-white dark:bg-gray-700 rounded border-l-4 border-primary';
+            activityElement.textContent = `${new Date().toLocaleTimeString()} - ${activity} (by ${currentUser.fullName})`;
+            
+            if (container.children.length === 0 || container.children[0].textContent.includes('No recent activity')) {
+                container.innerHTML = '';
+            }
+            
+            container.insertBefore(activityElement, container.firstChild);
+            
+            while (container.children.length > 5) {
+                container.removeChild(container.lastChild);
+            }
+        }
+
+        // Reports functionality
+        function updateReportDepartmentDropdown() {
+            const select = document.getElementById('report-department');
+            select.innerHTML = '<option value="">All Departments</option>' +
+                stockData.departments.map(dept => `<option value="${dept}">${dept}</option>`).join('');
+        }
+
+        function setDefaultReportDates() {
+            const today = new Date();
+            const lastMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+            
+            document.getElementById('report-from-date').value = lastMonth.toISOString().split('T')[0];
+            document.getElementById('report-to-date').value = today.toISOString().split('T')[0];
+        }
+
+        function generateReport() {
+            document.getElementById('report-content').innerHTML = '<p class="text-center py-8">Report functionality would be implemented here with role-based access control.</p>';
+        }
+
+        function printReport() {
+            if (!currentReportData) {
+                alert('Please generate a report first');
+                return;
+            }
+            window.print();
+        }
+
+        function exportToCSV() {
+            if (!currentReportData) {
+                alert('Please generate a report first');
+                return;
+            }
+        }
+
+        // Initialize default data if needed
+        function initializeApp() {
+            updateUIForRole();
+            updateAllDropdowns();
+            updateDashboard();
+        }
+    </script>
+</body>
+</html>
